@@ -1,0 +1,9 @@
+{
+  "name": "jyotish-mitra",
+  "version": "1.0.0",
+  "description": "Vedic astrology prediction app - Prokerala API + Claude API",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  }
+}
