@@ -298,8 +298,10 @@
     const lon = document.getElementById("lon").value;
     const question = document.getElementById("question").value;
 
-    // ISO 8601 datetime banate hain
-    const datetime = `${dob}T${tob}:00`;
+    // ISO 8601 datetime banate hain - Prokerala ko timezone offset chahiye
+    // Abhi hum +05:30 (India) hardcode kar rahe hain. Agar kabhi doosre
+    // timezone ke users ke liye banana ho to ye dropdown se select karna hoga.
+    const datetime = `${dob}T${tob}:00+05:30`;
 
     try {
       setLoading(true, "Graha sthiti calculate ho rahi hai...");
