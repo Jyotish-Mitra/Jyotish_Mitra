@@ -563,6 +563,22 @@
   </p>
 </div>
 
+<div id="debugErrorBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#c0392b; color:#fff; padding:12px; font-size:12px; z-index:9999; max-height:40vh; overflow-y:auto; white-space:pre-wrap;"></div>
+
+<script>
+  // Temporary debug helper - taaki silent JS errors screen pe dikh sakein
+  window.addEventListener("error", function (e) {
+    var banner = document.getElementById("debugErrorBanner");
+    banner.style.display = "block";
+    banner.textContent = "JS ERROR: " + e.message + "\n" + (e.filename || "") + ":" + (e.lineno || "");
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    var banner = document.getElementById("debugErrorBanner");
+    banner.style.display = "block";
+    banner.textContent = "PROMISE ERROR: " + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
+  });
+</script>
+
 <script type="module">
   import {
     auth,
@@ -691,7 +707,6 @@
     placeSuggestions.innerHTML = '<div class="suggestion-item loc-loading">Dhoondh rahe hain...</div>';
     placeSuggestions.classList.add("visible");
 
-    // Debounce - typing rukne ke 600ms baad hi search call hoga
     searchDebounceTimer = setTimeout(async () => {
       try {
         const res = await fetch(`${FUNCTIONS_BASE}/search-location?q=${encodeURIComponent(val)}`);
@@ -717,7 +732,6 @@
     }, 600);
   });
 
-  // Bahar click karne par dropdown band ho jaye
   document.addEventListener("click", (e) => {
     if (!placeInput.contains(e.target) && !placeSuggestions.contains(e.target)) {
       hideSuggestions();
@@ -887,7 +901,6 @@
   function displayKP(kp) {
     if (!kp) return;
 
-    // KP Chart SVG
     const kpWrap = document.getElementById("kpChartSvgWrap");
     if (kp.chart && kp.chart.data && kp.chart.data.svg) {
       kpWrap.innerHTML = kp.chart.data.svg;
@@ -895,7 +908,6 @@
       kpWrap.innerHTML = '<p style="color:#999;font-size:13px;">KP chart abhi available nahi hai (aapke Prokerala plan mein ye feature shamil nahi ho sakta)</p>';
     }
 
-    // KP Planet Positions (Star Lord / Sub Lord)
     const kpPlanets = kp.planetPosition?.data?.planet_position || [];
     const kpPlanetOutput = document.getElementById("kpPlanetOutput");
     if (kpPlanets.length === 0) {
@@ -913,7 +925,6 @@
         .join("")}</div>`;
     }
 
-    // KP House Significators
     const kpHouseSig = kp.houseSignificator?.data?.house_significator || kp.houseSignificator?.data?.significators || [];
     const kpHouseSigOutput = document.getElementById("kpHouseSigOutput");
     if (!kpHouseSig || kpHouseSig.length === 0) {
@@ -930,7 +941,6 @@
         .join("")}</div>`;
     }
 
-    // KP Planet Significators
     const kpPlanetSig = kp.planetSignificator?.data?.planet_significator || kp.planetSignificator?.data?.significators || [];
     const kpPlanetSigOutput = document.getElementById("kpPlanetSigOutput");
     if (!kpPlanetSig || kpPlanetSig.length === 0) {
@@ -947,7 +957,6 @@
         .join("")}</div>`;
     }
 
-    // KP Dasha
     const kpDashaPeriods = kp.dashaPeriods?.data?.dasha_periods || [];
     const kpDashaOutput = document.getElementById("kpDashaOutput");
     if (kpDashaPeriods.length === 0) {
@@ -1081,7 +1090,6 @@
   }
 
   function loadKundliIntoView(d) {
-    // Saved data ko "Nayi Kundli" tab mein display karna
     newTab.click();
     document.getElementById("name").value = d.name;
     document.getElementById("dob").value = d.dob;
