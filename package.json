@@ -1,9 +1,0 @@
-{
-  "name": "jyotish-mitra",
-  "version": "2.0.0",
-  "description": "Vedic astrology prediction app - Prokerala API + Gemini API + Firebase",
-  "private": true,
-  "engines": {
-    "node": ">=18"
-  }
-}
