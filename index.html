@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kundli Pro - Vedic Astrology App</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #1a0033 0%, #4a0080 50%, #ff6b35 100%);
+    min-height: 100vh;
+    color: #2d1b00;
+  }
+  .container { max-width: 480px; margin: 0 auto; padding: 16px; }
+  .header {
+    text-align: center;
+    padding: 24px 0 16px;
+    color: #fff;
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  .form-group { margin-bottom: 14px; }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a0080;
+    margin-bottom: 6px;
+  }
+  input, select {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid #e0d4f0;
+    border-radius: 10px;
+    font-size: 15px;
+    background: #faf8ff;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: #ff6b35;
+  }
+  .row { display: flex; gap: 10px; }
+  .row .form-group { flex: 1; }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255,107,53,0.4);
+    transition: transform 0.1s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.6; }
+
+  .loading {
+    text-align: center;
+    padding: 30px;
+    color: #fff;
+    display: none;
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top-color: #ff6b35;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error {
+    background: #ffe0e0;
+    color: #c0392b;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: none;
+  }
+
+  .result-section { display: none; }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #4a0080;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0e6ff;
+  }
+
+  /* North Indian Chart */
+  .chart-wrap { display: flex; justify-content: center; margin: 10px 0 20px; }
+  .ni-chart {
+    position: relative;
+    width: 280px;
+    height: 280px;
+  }
+  .ni-chart svg { width: 100%; height: 100%; }
+  .house-label {
+    position: absolute;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4a0080;
+    text-align: center;
+    width: 70px;
+    line-height: 1.2;
+  }
+  .house-num {
+    font-size: 9px;
+    color: #ff6b35;
+    display: block;
+  }
+
+  .planet-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .planet-chip {
+    background: #faf8ff;
+    border: 1px solid #e0d4f0;
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .planet-chip b { color: #ff6b35; }
+
+  .dasha-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0e6ff;
+    font-size: 13px;
+  }
+  .dasha-item:last-child { border-bottom: none; }
+  .dasha-name { font-weight: 700; color: #4a0080; }
+  .dasha-date { color: #888; font-size: 11px; }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px solid #f5f0ff;
+  }
+  .info-row span:first-child { color: #888; }
+  .info-row span:last-child { font-weight: 600; color: #2d1b00; }
+
+  .api-key-note {
+    background: #fff8e0;
+    border: 1px solid #ffe0a0;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 11px;
+    color: #8a6500;
+    margin-bottom: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🪐 कुंडली प्रो</h1>
+    <p>संपूर्ण वैदिक ज्योतिष विश्लेषण</p>
+  </div>
+
+  <div class="card" id="formCard">
+    <div class="form-group">
+      <label>पूरा नाम</label>
+      <input type="text" id="fullName" placeholder="जैसे: विवेक गारगटे">
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label>जन्म तिथि</label>
+        <input type="date" id="dob">
+      </div>
+      <div class="form-group">
+        <label>जन्म समय</label>
+        <input type="time" id="tob">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>जन्म स्थान (शहर)</label>
+      <input type="text" id="place" placeholder="जैसे: अहमदनगर, महाराष्ट्र">
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label>Latitude</label>
+        <input type="text" id="lat" placeholder="जैसे: 19.0948">
+      </div>
+      <div class="form-group">
+        <label>Longitude</label>
+        <input type="text" id="lng" placeholder="जैसे: 74.7480">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Timezone Offset</label>
+      <select id="tz">
+        <option value="+05:30" selected>IST (+05:30)</option>
+        <option value="+00:00">UTC (+00:00)</option>
+      </select>
+    </div>
+
+    <button class="btn" id="generateBtn" onclick="generateKundli()">कुंडली बनाएं</button>
+  </div>
+
+  <div class="error" id="errorBox"></div>
+
+  <div class="loading" id="loadingBox">
+    <div class="spinner"></div>
+    <div>कुंडली तैयार हो रही है...</div>
+  </div>
+
+  <div class="result-section" id="resultSection">
+    <div class="card">
+      <div class="section-title">जन्म विवरण</div>
+      <div id="birthDetails"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">राशि चार्ट (North Indian)</div>
+      <div class="chart-wrap" id="chartWrap"></div>
+      <div class="planet-list" id="planetList"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">विम्शोत्तरी दशा (Vimshottari Dasha)</div>
+      <div id="dashaList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let accessToken = null; // ab frontend ko token ki zaroorat nahi, backend khud handle karta hai
+const API_BASE = '/api/astro-proxy';
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.textContent = '⚠️ ' + msg;
+  box.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('errorBox').style.display = 'none';
+}
+
+async function generateKundli() {
+  hideError();
+  const fullName = document.getElementById('fullName').value.trim();
+  const dob = document.getElementById('dob').value;
+  const tob = document.getElementById('tob').value;
+  const lat = document.getElementById('lat').value.trim();
+  const lng = document.getElementById('lng').value.trim();
+  const tz = document.getElementById('tz').value;
+  const place = document.getElementById('place').value.trim();
+
+  if (!dob || !tob || !lat || !lng) return showError('Sari fields bharo: date, time, lat, lng.');
+
+  document.getElementById('generateBtn').disabled = true;
+  document.getElementById('loadingBox').style.display = 'block';
+  document.getElementById('resultSection').style.display = 'none';
+
+  try {
+    const datetime = `${dob}T${tob}:00${tz}`;
+    const coords = `${lat},${lng}`;
+
+    // Birth Details
+    const birthRes = await fetch(`${API_BASE}?endpoint=birth-details&ayanamsa=1&coordinates=${coords}&datetime=${encodeURIComponent(datetime)}`);
+    if (!birthRes.ok) throw new Error('Birth details fetch nahi hue. Coordinates/datetime check karo.');
+    const birthData = (await birthRes.json()).data;
+
+    // Chart (Rasi - North Indian)
+    const chartRes = await fetch(`${API_BASE}?endpoint=chart&ayanamsa=1&coordinates=${coords}&datetime=${encodeURIComponent(datetime)}&chart_type=rasi&chart_style=north-indian&format=json`);
+    const chartData = chartRes.ok ? (await chartRes.json()).data : null;
+
+    // Planet Positions
+    const planetRes = await fetch(`${API_BASE}?endpoint=planet-position&ayanamsa=1&coordinates=${coords}&datetime=${encodeURIComponent(datetime)}`);
+    const planetData = planetRes.ok ? (await planetRes.json()).data : null;
+
+    // Dasha Periods
+    const dashaRes = await fetch(`${API_BASE}?endpoint=dasha-periods&ayanamsa=1&coordinates=${coords}&datetime=${encodeURIComponent(datetime)}`);
+    const dashaData = dashaRes.ok ? (await dashaRes.json()).data : null;
+
+    renderBirthDetails(fullName, place, birthData);
+    renderChart(planetData);
+    renderDasha(dashaData);
+
+    document.getElementById('resultSection').style.display = 'block';
+  } catch (err) {
+    showError(err.message || 'Kuch error aaya. Phir try karo.');
+  } finally {
+    document.getElementById('generateBtn').disabled = false;
+    document.getElementById('loadingBox').style.display = 'none';
+  }
+}
+
+function renderBirthDetails(name, place, data) {
+  const el = document.getElementById('birthDetails');
+  let html = '';
+  if (name) html += row('नाम', name);
+  if (place) html += row('स्थान', place);
+  if (data) {
+    if (data.nakshatra) html += row('नक्षत्र', data.nakshatra.name + (data.nakshatra.lord ? ' (स्वामी: ' + data.nakshatra.lord.vedic_name?.hi || data.nakshatra.lord.name + ')' : ''));
+    if (data.chandra_rasi) html += row('चंद्र राशि', data.chandra_rasi.name);
+    if (data.soorya_rasi) html += row('सूर्य राशि', data.soorya_rasi.name);
+    if (data.zodiac) html += row('लग्न/ज़ोडियाक', data.zodiac.name);
+    if (data.additional_info && data.additional_info.deity) html += row('योनि/देवता', data.additional_info.deity);
+  }
+  el.innerHTML = html || '<div style="color:#888;font-size:13px;">डेटा उपलब्ध नहीं</div>';
+}
+
+function row(label, value) {
+  return `<div class="info-row"><span>${label}</span><span>${value}</span></div>`;
+}
+
+// North Indian chart house positions (diamond layout, 12 fixed boxes)
+// House numbering follows fixed North Indian diamond pattern based on Lagna
+function renderChart(planetData) {
+  const wrap = document.getElementById('chartWrap');
+  const listEl = document.getElementById('planetList');
+
+  // Fixed North Indian diamond SVG layout
+  wrap.innerHTML = `
+    <div class="ni-chart">
+      <svg viewBox="0 0 280 280">
+        <rect x="0" y="0" width="280" height="280" fill="#fff" stroke="#4a0080" stroke-width="2"/>
+        <line x1="0" y1="0" x2="280" y2="280" stroke="#4a0080" stroke-width="1.5"/>
+        <line x1="280" y1="0" x2="0" y2="280" stroke="#4a0080" stroke-width="1.5"/>
+        <line x1="140" y1="0" x2="0" y2="140" stroke="#4a0080" stroke-width="1.5"/>
+        <line x1="0" y1="140" x2="140" y2="280" stroke="#4a0080" stroke-width="1.5"/>
+        <line x1="140" y1="280" x2="280" y2="140" stroke="#4a0080" stroke-width="1.5"/>
+        <line x1="280" y1="140" x2="140" y2="0" stroke="#4a0080" stroke-width="1.5"/>
+      </svg>
+      <div class="house-label" style="top:8px; left:105px;" data-house="1"></div>
+      <div class="house-label" style="top:55px; left:18px;" data-house="2"></div>
+      <div class="house-label" style="top:105px; left:8px;" data-house="3"></div>
+      <div class="house-label" style="top:160px; left:18px;" data-house="4"></div>
+      <div class="house-label" style="top:210px; left:18px;" data-house="5"></div>
+      <div class="house-label" style="top:230px; left:105px;" data-house="6"></div>
+      <div class="house-label" style="top:210px; left:190px;" data-house="7"></div>
+      <div class="house-label" style="top:160px; left:195px;" data-house="8"></div>
+      <div class="house-label" style="top:105px; left:200px;" data-house="9"></div>
+      <div class="house-label" style="top:55px; left:195px;" data-house="10"></div>
+      <div class="house-label" style="top:30px; left:160px;" data-house="11"></div>
+      <div class="house-label" style="top:30px; left:55px;" data-house="12"></div>
+    </div>
+  `;
+
+  if (!planetData || !planetData.planet_position) {
+    listEl.innerHTML = '<div style="color:#888;font-size:13px;grid-column:1/-1;">ग्रह स्थिति उपलब्ध नहीं</div>';
+    return;
+  }
+
+  const planets = planetData.planet_position;
+  // group planets by rasi (1-12)
+  const byRasi = {};
+  planets.forEach(p => {
+    const rasiId = p.rasi ? p.rasi.id : null;
+    if (!rasiId) return;
+    if (!byRasi[rasiId]) byRasi[rasiId] = [];
+    byRasi[rasiId].push(shortName(p.name));
+  });
+
+  document.querySelectorAll('.house-label').forEach(div => {
+    const houseRasi = parseInt(div.dataset.house);
+    const names = byRasi[houseRasi] || [];
+    div.innerHTML = `<span class="house-num">राशि ${houseRasi}</span>${names.join(', ')}`;
+  });
+
+  listEl.innerHTML = planets.map(p => `
+    <div class="planet-chip">
+      <b>${shortName(p.name)}</b>: ${p.rasi ? p.rasi.name : '-'}
+      ${p.degree ? `(${p.degree.toFixed(2)}°)` : ''}
+      ${p.is_retrograde ? ' R' : ''}
+    </div>
+  `).join('');
+}
+
+function shortName(name) {
+  const map = {
+    'Sun': 'सूर्य', 'Moon': 'चंद्र', 'Mars': 'मंगल', 'Mercury': 'बुध',
+    'Jupiter': 'गुरु', 'Venus': 'शुक्र', 'Saturn': 'शनि',
+    'Rahu': 'राहु', 'Ketu': 'केतु', 'Ascendant': 'लग्न'
+  };
+  return map[name] || name;
+}
+
+function renderDasha(dashaData) {
+  const el = document.getElementById('dashaList');
+  if (!dashaData || !dashaData.dasha_periods) {
+    el.innerHTML = '<div style="color:#888;font-size:13px;">दशा डेटा उपलब्ध नहीं</div>';
+    return;
+  }
+  const periods = dashaData.dasha_periods.slice(0, 9); // mahadasha list
+  el.innerHTML = periods.map(d => `
+    <div class="dasha-item">
+      <span class="dasha-name">${shortName(d.name)} महादशा</span>
+      <span class="dasha-date">${formatDate(d.start)} - ${formatDate(d.end)}</span>
+    </div>
+  `).join('');
+}
+
+function formatDate(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  return d.toLocaleDateString('hi-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+</script>
+</body>
+</html>
